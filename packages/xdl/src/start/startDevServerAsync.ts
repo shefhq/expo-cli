@@ -1,5 +1,10 @@
 import { ExpoConfig, ProjectTarget } from '@expo/config';
-import { MessageSocket, MetroDevServerOptions, runMetroDevServerAsync } from '@expo/dev-server';
+import {
+  MessageSocket,
+  MetroDevServerOptions,
+  prependMiddleware,
+  runMetroDevServerAsync,
+} from '@expo/dev-server';
 import http from 'http';
 
 import {
@@ -61,8 +66,6 @@ export async function startDevServerAsync(
   }
 
   const { server, middleware, messageSocket } = await runMetroDevServerAsync(projectRoot, options);
-  middleware.use(ManifestHandler.getManifestHandler(projectRoot));
-  middleware.use(ExpoUpdatesManifestHandler.getManifestHandler(projectRoot));
 
   // We need the manifest handler to be the first middleware to run so our
   // routes take precedence over static files. For example, the manifest is
@@ -70,7 +73,9 @@ export async function startDevServerAsync(
   // then the manifest handler will never run, the static middleware will run
   // and serve index.html instead of the manifest.
   // https://github.com/expo/expo/issues/13114
-  middleware.stack.unshift(middleware.stack.pop());
+  prependMiddleware(middleware, ManifestHandler.getManifestHandler(projectRoot));
+
+  middleware.use(ExpoUpdatesManifestHandler.getManifestHandler(projectRoot));
 
   return [server, middleware, messageSocket];
 }
