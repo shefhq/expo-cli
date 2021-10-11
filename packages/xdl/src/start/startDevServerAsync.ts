@@ -6,6 +6,7 @@ import {
   assertValidProjectRoot,
   ExpoUpdatesManifestHandler,
   getFreePortAsync,
+  LoadingPageHandler,
   ManifestHandler,
   ProjectSettings,
   ProjectUtils,
@@ -63,7 +64,7 @@ export async function startDevServerAsync(
   const { server, middleware, messageSocket } = await runMetroDevServerAsync(projectRoot, options);
   middleware.use(ManifestHandler.getManifestHandler(projectRoot));
   middleware.use(ExpoUpdatesManifestHandler.getManifestHandler(projectRoot));
-
+  middleware.use(LoadingPageHandler.getLoadingPageHandler(projectRoot));
   // We need the manifest handler to be the first middleware to run so our
   // routes take precedence over static files. For example, the manifest is
   // served from '/' and if the user has an index.html file in their project
